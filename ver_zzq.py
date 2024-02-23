@@ -169,7 +169,7 @@ def my_opt(param_cfg, load_data, time_scale, **kwargs):
     h_sto = model.addVars(time_scale, lb=sto_min, name='h_sto')
     h_sto_next = model.addVars(time_scale, lb=sto_min, name='h_sto_next')
     # hot water storage
-    g_hw_io = model.addVars(time_scale, name='g_hw_io')
+    g_hw_io = model.addVars(time_scale, lb=-10000, name='g_hw_io')
     g_hw = model.addVars(time_scale, name='g_hw')
     g_hw_next = model.addVars(time_scale, name='g_hw_next')
     # cold water storage
@@ -239,13 +239,13 @@ def my_opt(param_cfg, load_data, time_scale, **kwargs):
         model.addConstr(q_cw[i] <= Q_CW)
         # heat pump
         model.addConstr(g_hp[i] == p_hp[i] * beta_hpg * z_hp_g[i])
-        model.addConstr(q_hp[i] == p_hp[i] * beta_hpq * (1 - z_hp_q[i]))
+        model.addConstr(q_hp[i] == p_hp[i] * beta_hpq * z_hp_q[i])
         model.addConstr(z_hp_g[i] + z_hp_q[i] == 1)
         # electric boiler
         model.addConstr(g_eb[i] == beta_eb * p_eb[i])
         # --- energy balance ---
         model.addConstr(p_pv[i] + p_fc[i] + p_pur[i] - p_el[i] - p_hp[i] - p_eb[i] - load_data["P_DE"][i] == 0)
-        model.addConstr(g_fc[i] + g_hp[i] + g_eb[i] - g_hw[i] - load_data["G_DE"][i] == 0)
+        model.addConstr(g_fc[i] + g_hp[i] + g_eb[i] - g_hw_io[i] - load_data["G_DE"][i] == 0)
         model.addConstr(q_cw[i] + q_hp[i] - load_data["Q_DE"][i] == 0)
 
     # ------ optimize ------
